@@ -71,7 +71,7 @@ jobs:
             exit 1
         fi
         # 检查是否为数组格式
-        if ! yq eval 'type' $IMAGE_LIST_FILE | grep -q 'array'; then
+        if ! yq eval 'type' $IMAGE_LIST_FILE | grep -q '!!seq'; then
             echo "Error: YAML file should contain an array of images"
             exit 1
         fi
