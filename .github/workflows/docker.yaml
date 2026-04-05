@@ -165,7 +165,7 @@ jobs:
             success=false
 
             while [ $retry_count -lt $max_retries ]; do
-                if skopeo copy --all $source_image docker://$new_image; then
+                if skopeo copy --override-arch amd64 --override-os linux $source_image docker://$new_image; then
                     echo "Successfully copied $source_image to $new_image"
                     success=true
                     success_count=$((success_count+1))
