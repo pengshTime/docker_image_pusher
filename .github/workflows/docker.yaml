@@ -232,7 +232,7 @@ jobs:
           🐳 Docker镜像同步报告
           ━━━━━━━━━━━━━━━━━━━━
           ✅ 成功: ${{ steps.sync-images.outputs.success_count }} 个
-          已存在无需同步: ${{ steps.sync-images.outputs.skipped_count }} 个
+          ⏭️ 已存在无需同步: ${{ steps.sync-images.outputs.skipped_count }} 个
           ❌ 失败: ${{ steps.sync-images.outputs.failure_count }} 个
           ━━━━━━━━━━━━━━━━━━━━
           📋 源镜像列表:
