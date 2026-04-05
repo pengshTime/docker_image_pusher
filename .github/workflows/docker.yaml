@@ -148,17 +148,19 @@ jobs:
             fi
             echo "New image name: $new_image"
 
-            # 收集镜像列表
-            source_images_list+="• $image"$'\n'
-            aliyun_images_list+="• $new_image"$'\n'
-
             # 构建源镜像URL
             if echo "$image" | grep -q '^[a-zA-Z0-9.-]*\/'; then
                 source_image="docker://$image"
+                full_source_image="$image"
             else
                 source_image="docker://docker.io/library/$image"
+                full_source_image="docker.io/library/$image"
             fi
             echo "Source image: $source_image"
+
+            # 收集镜像列表
+            source_images_list+="• $full_source_image"$'\n'
+            aliyun_images_list+="• $new_image"$'\n'
 
             # 检查阿里云是否已经存在该镜像
             echo "Checking if $new_image exists in Aliyun ACR"
