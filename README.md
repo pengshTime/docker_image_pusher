@@ -1,17 +1,17 @@
 # Docker Images Pusher
 
-使用Github Action将国外的Docker镜像转存到阿里云私有仓库，供国内服务器使用，免费易用&lt;br&gt;
-- 支持DockerHub, gcr.io, k8s.io, ghcr.io等任意仓库&lt;br&gt;
-- 使用skopeo直接在仓库间复制，无需下载到本地磁盘&lt;br&gt;
-- 只复制amd64架构，节省空间和时间&lt;br&gt;
-- 支持邮件通知同步结果&lt;br&gt;
-- 使用阿里云的官方线路，速度快&lt;br&gt;
+原作者：**[技术爬爬虾](https://github.com/tech-shrimp/me)**
+B站，抖音，Youtube全网同名，感谢原作者的原创项目！
+本项目基于原项目进行了优化和改进：使用skopeo、添加邮件通知等
+
+使用Github Action将国外的Docker镜像转存到阿里云私有仓库，供国内服务器使用，免费易用
+- 支持DockerHub, gcr.io, k8s.io, ghcr.io等任意仓库
+- 使用skopeo直接在仓库间复制，无需下载到本地磁盘
+- 只复制amd64架构，节省空间和时间
+- 支持邮件通知同步结果
+- 使用阿里云的官方线路，速度快
 
 视频教程：https://www.bilibili.com/video/BV1Zn4y19743/
-
-原作者：**[技术爬爬虾](https://github.com/tech-shrimp/me)**&lt;br&gt;
-B站，抖音，Youtube全网同名，感谢原作者的原创项目！&lt;br&gt;
-本项目基于原项目进行了优化和改进：使用skopeo、添加邮件通知等&lt;br&gt;
 
 ## 功能特性
 
@@ -26,40 +26,40 @@ B站，抖音，Youtube全网同名，感谢原作者的原创项目！&lt;br&gt
 
 
 ### 配置阿里云
-登录阿里云容器镜像服务&lt;br&gt;
-https://cr.console.aliyun.com/&lt;br&gt;
+登录阿里云容器镜像服务
+https://cr.console.aliyun.com/
 启用个人实例，创建一个命名空间（**ALIYUN_NAME_SPACE**）
 ![](/doc/命名空间.png)
 
-访问凭证–&gt;获取环境变量&lt;br&gt;
-用户名（**ALIYUN_REGISTRY_USER**)&lt;br&gt;
-密码（**ALIYUN_REGISTRY_PASSWORD**)&lt;br&gt;
-仓库地址（**ALIYUN_REGISTRY**）&lt;br&gt;
+访问凭证–&gt;获取环境变量
+用户名（**ALIYUN_REGISTRY_USER**)
+密码（**ALIYUN_REGISTRY_PASSWORD**)
+仓库地址（**ALIYUN_REGISTRY**）
 
 ![](/doc/用户名密码.png)
 
 
 ### Fork本项目
-Fork本项目&lt;br&gt;
+Fork本项目
 #### 启动Action
-进入您自己的项目，点击Action，启用Github Action功能&lt;br&gt;
+进入您自己的项目，点击Action，启用Github Action功能
 #### 配置环境变量
 进入Settings-&gt;Secret and variables-&gt;Actions-&gt;New Repository secret
 ![](doc/配置环境变量.png)
-将上一步的**四个值**&lt;br&gt;
-ALIYUN_NAME_SPACE,ALIYUN_REGISTRY_USER，ALIYUN_REGISTRY_PASSWORD，ALIYUN_REGISTRY&lt;br&gt;
+将上一步的**四个值**
+ALIYUN_NAME_SPACE,ALIYUN_REGISTRY_USER，ALIYUN_REGISTRY_PASSWORD，ALIYUN_REGISTRY
 配置成环境变量
 
 #### 可选：配置邮件通知
-如需邮件通知，还需添加以下Secret：&lt;br&gt;
-- **EMAIL_USERNAME**: 你的163邮箱（如：xxx@163.com）&lt;br&gt;
-- **EMAIL_PASSWORD**: 163邮箱授权码（不是邮箱密码）&lt;br&gt;
+如需邮件通知，还需添加以下Secret：
+- **EMAIL_USERNAME**: 你的163邮箱（如：xxx@163.com）
+- **EMAIL_PASSWORD**: 163邮箱授权码（不是邮箱密码）
 
 ### 添加镜像
 打开images.txt文件，添加你想要的镜像 
-可以加tag，也可以不用(默认latest)&lt;br&gt;
-可使用 k8s.gcr.io/kube-state-metrics/kube-state-metrics 格式指定私库&lt;br&gt;
-可使用 #开头作为注释&lt;br&gt;
+可以加tag，也可以不用(默认latest)
+可使用 k8s.gcr.io/kube-state-metrics/kube-state-metrics 格式指定私库
+可使用 #开头作为注释
 ![](doc/images.png)
 文件提交后，自动进入Github Action构建
 
@@ -67,13 +67,13 @@ ALIYUN_NAME_SPACE,ALIYUN_REGISTRY_USER，ALIYUN_REGISTRY_PASSWORD，ALIYUN_REGIS
 回到阿里云，镜像仓库，点击任意镜像，可查看镜像状态。(可以改成公开，拉取镜像免登录)
 ![](doc/开始使用.png)
 
-在国内服务器pull镜像, 例如：&lt;br&gt;
+在国内服务器pull镜像, 例如：
 ```
 docker pull registry.cn-hangzhou.aliyuncs.com/shrimp-images/alpine
 ```
-registry.cn-hangzhou.aliyuncs.com 即 ALIYUN_REGISTRY(阿里云仓库地址)&lt;br&gt;
-shrimp-images 即 ALIYUN_NAME_SPACE(阿里云命名空间)&lt;br&gt;
-alpine 即 阿里云中显示的镜像名&lt;br&gt;
+registry.cn-hangzhou.aliyuncs.com 即 ALIYUN_REGISTRY(阿里云仓库地址)
+shrimp-images 即 ALIYUN_NAME_SPACE(阿里云命名空间)
+alpine 即 阿里云中显示的镜像名
 
 ### 镜像重名
 程序自动判断是否存在名称相同, 但是属于不同命名空间的情况。
