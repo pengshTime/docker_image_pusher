@@ -148,11 +148,17 @@ jobs:
             fi
             echo "New image name: $new_image"
 
-            # 构建源镜像URL
-            if echo "$image" | grep -q '^[a-zA-Z0-9.-]*\/'; then
+            # 构建源镜像URL - 确保显示完整的registry地址
+            if echo "$image" | grep -q '^[a-zA-Z0-9.-]*\.[a-zA-Z0-9.-]*\/'; then
+                # 已经包含registry，例如 gcr.io/xxx/xxx
                 source_image="docker://$image"
                 full_source_image="$image"
+            elif echo "$image" | grep -q '^[a-zA-Z0-9.-]*\/'; then
+                # 只有用户名/镜像名，默认添加docker.io
+                source_image="docker://docker.io/$image"
+                full_source_image="docker.io/$image"
             else
+                # 只有镜像名，默认添加docker.io/library
                 source_image="docker://docker.io/library/$image"
                 full_source_image="docker.io/library/$image"
             fi
