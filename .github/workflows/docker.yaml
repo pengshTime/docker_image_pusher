@@ -16,7 +16,7 @@ env:
   ALIYUN_NAME_SPACE: "${{ secrets.ALIYUN_NAME_SPACE }}"
   ALIYUN_REGISTRY_USER: "${{ secrets.ALIYUN_REGISTRY_USER }}"
   ALIYUN_REGISTRY_PASSWORD: "${{ secrets.ALIYUN_REGISTRY_PASSWORD }}"
-  IMAGE_LIST_FILE: "${{ github.event.inputs.image_list_file || env.IMAGE_LIST_FILE || 'images.yaml' }}"
+  IMAGE_LIST_FILE: "${{ github.event.inputs.image_list_file || 'images.yaml' }}"
 
 jobs:
 
