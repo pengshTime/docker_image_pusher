@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       provider:
-        description: 'Provider to use (aliyun/huawei/tencent)'
+        description: 'Provider to use (aliyun/huawei)'
         required: true
         default: 'aliyun'
       image_list_file:
@@ -61,10 +61,6 @@ jobs:
           HUAWEI_NAMESPACE: ${{ secrets.HUAWEI_NAMESPACE }}
           HUAWEI_REGISTRY_USER: ${{ secrets.HUAWEI_REGISTRY_USER }}
           HUAWEI_REGISTRY_PASSWORD: ${{ secrets.HUAWEI_REGISTRY_PASSWORD }}
-          TENCENT_REGISTRY: ${{ secrets.TENCENT_REGISTRY }}
-          TENCENT_NAMESPACE: ${{ secrets.TENCENT_NAMESPACE }}
-          TENCENT_REGISTRY_USER: ${{ secrets.TENCENT_REGISTRY_USER }}
-          TENCENT_REGISTRY_PASSWORD: ${{ secrets.TENCENT_REGISTRY_PASSWORD }}
         run: ./sync
 
       # - name: Send email notification

@@ -214,3 +214,86 @@ func (il *ImageList) GetInvalidEntries(provider string) []ImageEntry {
 	}
 	return invalid
 }
+
+// GetImagesWithDeduplication 获取镜像列表，并排除已在其他云商中存在的镜像
+// 参数 currentProvider 是当前要处理的云商
+// 返回的镜像列表不包含在其他云商中已存在的镜像
+func (il *ImageList) GetImagesWithDeduplication(currentProvider string) []string {
+	// 获取当前云商的所有有效镜像
+	currentEntries := il.GetEntries(currentProvider)
+	if len(currentEntries) == 0 {
+		return []string{}
+	}
+
+	// 收集其他云商的所有镜像（标准化后的地址）
+	otherProvidersImages := make(map[string]bool)
+	for provider, entries := range il.Images {
+		if provider == currentProvider {
+			continue
+		}
+		for _, entry := range entries {
+			if entry.Valid {
+				otherProvidersImages[entry.Source] = true
+			}
+		}
+	}
+
+	// 过滤掉已在其他云商中存在的镜像
+	var uniqueImages []string
+	for _, entry := range currentEntries {
+		if !entry.Valid {
+			continue
+		}
+		if otherProvidersImages[entry.Source] {
+			// 镜像已在其他云商中存在，跳过
+			continue
+		}
+		uniqueImages = append(uniqueImages, entry.Source)
+	}
+
+	return uniqueImages
+}
+
+// GetDuplicateImages 获取在当前云商中与其他云商重复的镜像列表
+// 用于报告哪些镜像被跳过了
+func (il *ImageList) GetDuplicateImages(currentProvider string) map[string][]string {
+	duplicates := make(map[string][]string)
+
+	// 获取当前云商的所有有效镜像
+	currentEntries := il.GetEntries(currentProvider)
+	if len(currentEntries) == 0 {
+		return duplicates
+	}
+
+	// 收集每个镜像在哪些云商中存在
+	imageProviders := make(map[string][]string)
+	for provider, entries := range il.Images {
+		for _, entry := range entries {
+			if entry.Valid {
+				imageProviders[entry.Source] = append(imageProviders[entry.Source], provider)
+			}
+		}
+	}
+
+	// 找出在当前云商中与其他云商重复的镜像
+	for _, entry := range currentEntries {
+		if !entry.Valid {
+			continue
+		}
+		providers := imageProviders[entry.Source]
+		if len(providers) > 1 {
+			// 镜像在多个云商中存在
+			var otherProviders []string
+			for _, p := range providers {
+				if p != currentProvider {
+					otherProviders = append(otherProviders, p)
+				}
+			}
+			if len(otherProviders) > 0 {
+				duplicates[entry.Source] = otherProviders
+			}
+		}
+	}
+
+	return duplicates
+}

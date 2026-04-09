@@ -21,8 +21,6 @@ func Load() *Config {
 	switch provider {
 	case "huawei", "swr":
 		prefix = "HUAWEI"
-	case "tencent", "tcr":
-		prefix = "TENCENT"
 	default:
 		prefix = "ALIYUN"
 	}

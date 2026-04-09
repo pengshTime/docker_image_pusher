@@ -72,16 +72,35 @@ func main() {
 		}
 	}
 
-	// 获取有效的镜像地址列表
-	providerImages := images.GetImages(cfg.Provider)
+	// 检查跨云商重复的镜像
+	duplicates := images.GetDuplicateImages(cfg.Provider)
+	if len(duplicates) > 0 {
+		logger.Warn("Found %d images that also exist in other providers:", len(duplicates))
+		for img, providers := range duplicates {
+			logger.Warn("  - %s (also in: %v)", img, providers)
+		}
+		logger.Warn("These images will be skipped to avoid duplicate pulls")
+		logger.Info("")
+	}
+
+	// 获取有效的镜像地址列表（去重后）
+	providerImages := images.GetImagesWithDeduplication(cfg.Provider)
 	totalImages := len(providerImages)
 
+	// 获取原始数量用于报告
+	originalCount := len(images.GetImages(cfg.Provider))
+	skippedDueToDedup := originalCount - totalImages
+
 	if totalImages == 0 {
-		logger.Info("No valid images to sync for provider: %s", cfg.Provider)
+		if skippedDueToDedup > 0 {
+			logger.Info("All %d images for provider %s already exist in other providers, skipping sync", skippedDueToDedup, cfg.Provider)
+		} else {
+			logger.Info("No valid images to sync for provider: %s", cfg.Provider)
+		}
 		os.Exit(0)
 	}
 
-	logger.Info("Loaded %d valid images for provider: %s", totalImages, cfg.Provider)
+	logger.Info("Loaded %d unique images for provider: %s (skipped %d duplicates)", totalImages, cfg.Provider, skippedDueToDedup)
 
 	factory := provider.NewProviderFactory()
 	p, err := factory.Create(cfg.Provider, cfg.Registry, cfg.Namespace, cfg.Username, cfg.Password)
@@ -175,12 +194,15 @@ func main() {
 	logger.Info("========================================")
 	logger.Info("Provider: %s", cfg.Provider)
 	logger.Info("Total Entries: %d", totalEntries)
-	logger.Info("Valid Images: %d", totalImages)
+	logger.Info("Valid Images: %d", originalCount)
+	if skippedDueToDedup > 0 {
+		logger.Info("Skipped (duplicates): %d", skippedDueToDedup)
+	}
 	if len(invalidEntries) > 0 {
 		logger.Info("Invalid Entries: %d", len(invalidEntries))
 	}
 	logger.Info("Success: %d", successCount)
-	logger.Info("Skipped: %d", skippedCount)
+	logger.Info("Skipped (exists): %d", skippedCount)
 	logger.Info("Failed: %d", failureCount)
 	logger.Info("========================================")
 
@@ -304,7 +326,7 @@ func printHelp() {
 	fmt.Println("  -help       Show this help message")
 	fmt.Println("")
 	fmt.Println("Environment Variables:")
-	fmt.Println("  PROVIDER              Cloud provider (aliyun/huawei/tencent)")
+	fmt.Println("  PROVIDER              Cloud provider (aliyun/huawei)")
 	fmt.Println("  LOG_LEVEL             Log level (DEBUG/INFO/WARN/ERROR), default: INFO")
 	fmt.Println("  SYNC_TIMEOUT          Sync timeout in seconds, default: 300 (5 minutes)")
 	fmt.Println("  MAX_RETRIES           Max retry attempts, default: 3")
