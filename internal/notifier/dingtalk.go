@@ -80,7 +80,7 @@ func (d *DingTalkNotifier) BuildMessage(provider string, results []SyncResult) *
 	// 构建 Markdown 文本
 	var sb strings.Builder
 
-	// 标题
+	// 标题（必须包含关键词"镜像同步"）
 	sb.WriteString("## 🚀 镜像同步任务报告\n\n")
 
 	// 基本信息
