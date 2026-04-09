@@ -144,17 +144,10 @@ func normalizeImageRef(image string) (string, error) {
 	}
 
 	// 如果没有 tag，添加 :latest
-	imagePart := image
 	tagIdx := strings.LastIndex(image, ":")
-	if tagIdx > strings.LastIndex(image, "/") {
-		imagePart = image[:tagIdx]
-	}
 	
-	// 检查是否已经有 tag
-	hasTag := false
-	if tagIdx > strings.LastIndex(image, "/") {
-		hasTag = true
-	}
+	// 检查是否已经有 tag（: 在最后一个 / 之后）
+	hasTag := tagIdx > strings.LastIndex(image, "/")
 
 	if !hasTag {
 		image = image + ":latest"
