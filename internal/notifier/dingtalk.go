@@ -60,8 +60,6 @@ func (d *DingTalkNotifier) BuildMessage(provider string, results []SyncResult) *
 	successCount := 0
 	failCount := 0
 	skipCount := 0
-	var successImages []string
-	var failImages []string
 
 	for _, r := range results {
 		if r.Success {
@@ -69,12 +67,9 @@ func (d *DingTalkNotifier) BuildMessage(provider string, results []SyncResult) *
 				skipCount++
 			} else {
 				successCount++
-				// 显示源镜像 -> 目标镜像
-				successImages = append(successImages, fmt.Sprintf("%s → %s", r.SourceImage, r.TargetImage))
 			}
 		} else {
 			failCount++
-			failImages = append(failImages, fmt.Sprintf("%s → %s: %s", r.SourceImage, r.TargetImage, r.ErrorMessage))
 		}
 	}
 
@@ -100,29 +95,23 @@ func (d *DingTalkNotifier) BuildMessage(provider string, results []SyncResult) *
 	}
 	sb.WriteString("\n")
 
-	// 所有镜像都跳过的情况
-	if successCount == 0 && failCount == 0 {
-		sb.WriteString("### ☁️ 状态\n\n")
-		sb.WriteString("> 镜像已是最新，无需操作\n")
-	}
-
-	// 成功的镜像列表
-	if successCount > 0 {
-		sb.WriteString("### ✅ 同步成功的镜像\n\n")
-		for _, img := range successImages {
-			sb.WriteString(fmt.Sprintf("- `%s`\n", img))
+	// 镜像清单（包含所有镜像的云端地址）
+	sb.WriteString("### 📦 镜像清单\n\n")
+	for _, r := range results {
+		if r.Success {
+			if r.ErrorMessage == "already exists" {
+				// 已存在的镜像
+				sb.WriteString(fmt.Sprintf("- ⏭️ [已存在] `%s`\n", r.TargetImage))
+			} else {
+				// 同步成功的镜像
+				sb.WriteString(fmt.Sprintf("- ✅ [成功] `%s`\n", r.TargetImage))
+			}
+		} else {
+			// 失败的镜像
+			sb.WriteString(fmt.Sprintf("- ❌ [失败] `%s` (%s)\n", r.TargetImage, r.ErrorMessage))
 		}
-		sb.WriteString("\n")
 	}
-
-	// 失败的镜像列表
-	if failCount > 0 {
-		sb.WriteString("### ❌ 同步失败的镜像\n\n")
-		for _, fail := range failImages {
-			sb.WriteString(fmt.Sprintf("- **%s**\n", fail))
-		}
-		sb.WriteString("\n")
-	}
+	sb.WriteString("\n")
 
 	// 页脚
 	sb.WriteString("---\n")
