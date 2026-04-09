@@ -218,7 +218,7 @@ func main() {
 	}
 }
 
-// generateEmailReport 生成邮件报告文件
+// generateEmailReport 生成邮件报告文件（纯文本格式，方便复制）
 func generateEmailReport(provider string, successImages, skippedImages, failedImages []string) {
 	var sb strings.Builder
 
@@ -237,7 +237,13 @@ func generateEmailReport(provider string, successImages, skippedImages, failedIm
 	if len(successImages) > 0 {
 		sb.WriteString("[已同步]\n")
 		for _, img := range successImages {
-			sb.WriteString(fmt.Sprintf("  ✓ %s\n", img))
+			parts := strings.Split(img, " -> ")
+			if len(parts) == 2 {
+				sb.WriteString(fmt.Sprintf("  ✓ %s\n", parts[0]))
+				sb.WriteString(fmt.Sprintf("    %s\n", parts[1]))
+			} else {
+				sb.WriteString(fmt.Sprintf("  ✓ %s\n", img))
+			}
 		}
 		sb.WriteString("\n")
 	}
@@ -246,7 +252,13 @@ func generateEmailReport(provider string, successImages, skippedImages, failedIm
 	if len(skippedImages) > 0 {
 		sb.WriteString("[已跳过]\n")
 		for _, img := range skippedImages {
-			sb.WriteString(fmt.Sprintf("  ⏭ %s\n", img))
+			parts := strings.Split(img, " -> ")
+			if len(parts) == 2 {
+				sb.WriteString(fmt.Sprintf("  ⏭ %s\n", parts[0]))
+				sb.WriteString(fmt.Sprintf("    %s\n", parts[1]))
+			} else {
+				sb.WriteString(fmt.Sprintf("  ⏭ %s\n", img))
+			}
 		}
 		sb.WriteString("\n")
 	}
@@ -255,7 +267,20 @@ func generateEmailReport(provider string, successImages, skippedImages, failedIm
 	if len(failedImages) > 0 {
 		sb.WriteString("[失败]\n")
 		for _, img := range failedImages {
-			sb.WriteString(fmt.Sprintf("  ✗ %s\n", img))
+			// 失败信息格式: source -> target: error
+			parts := strings.Split(img, " -> ")
+			if len(parts) == 2 {
+				targetAndError := strings.SplitN(parts[1], ": ", 2)
+				if len(targetAndError) == 2 {
+					sb.WriteString(fmt.Sprintf("  ✗ %s\n", parts[0]))
+					sb.WriteString(fmt.Sprintf("    %s\n", targetAndError[0]))
+					sb.WriteString(fmt.Sprintf("    错误: %s\n", targetAndError[1]))
+				} else {
+					sb.WriteString(fmt.Sprintf("  ✗ %s\n", img))
+				}
+			} else {
+				sb.WriteString(fmt.Sprintf("  ✗ %s\n", img))
+			}
 		}
 		sb.WriteString("\n")
 	}

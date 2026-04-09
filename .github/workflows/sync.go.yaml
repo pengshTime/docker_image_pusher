@@ -58,29 +58,6 @@ jobs:
           ALIYUN_REGISTRY_PASSWORD: ${{ secrets.ALIYUN_REGISTRY_PASSWORD }}
         run: ./sync
 
-      - name: Prepare Email Body
-        if: always()
-        run: |
-          if [ -f email_report.txt ]; then
-            echo "EMAIL_BODY<<EOF" >> $GITHUB_ENV
-            cat email_report.txt >> $GITHUB_ENV
-            echo "" >> $GITHUB_ENV
-            echo "---" >> $GITHUB_ENV
-            echo "查看详细日志: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
-            echo "EOF" >> $GITHUB_ENV
-          else
-            echo "EMAIL_BODY<<EOF" >> $GITHUB_ENV
-            echo "Docker镜像同步任务已完成" >> $GITHUB_ENV
-            echo "" >> $GITHUB_ENV
-            echo "提供商: 阿里云 (Aliyun)" >> $GITHUB_ENV
-            echo "状态: ${{ job.status }}" >> $GITHUB_ENV
-            echo "时间: $(date '+%Y-%m-%d %H:%M:%S')" >> $GITHUB_ENV
-            echo "" >> $GITHUB_ENV
-            echo "---" >> $GITHUB_ENV
-            echo "查看详细日志: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
-            echo "EOF" >> $GITHUB_ENV
-          fi
-
       - name: Send Email Notification
         if: always()
         uses: dawidd6/action-send-mail@v3
@@ -92,4 +69,4 @@ jobs:
           subject: Docker镜像同步完成通知 - ${{ job.status }}
           to: ${{ secrets.EMAIL_USERNAME }}
           from: GitHub Actions
-          body: ${{ env.EMAIL_BODY }}
+          body: file://email_report.txt
