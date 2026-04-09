@@ -129,6 +129,10 @@ func main() {
 	}
 	close(imageChan)
 
+	// 启动进度条显示
+	progressChan := make(chan struct{}, totalImages)
+	go showProgress(totalImages, progressChan)
+
 	concurrency := 3
 	for i := 0; i < concurrency; i++ {
 		wg.Add(1)
@@ -137,6 +141,7 @@ func main() {
 			for img := range imageChan {
 				result := syncWithRetry(ctx, p, img, timeoutSec, maxRetries)
 				resultChan <- result
+				progressChan <- struct{}{}
 			}
 		}()
 	}
@@ -144,6 +149,7 @@ func main() {
 	go func() {
 		wg.Wait()
 		close(resultChan)
+		close(progressChan)
 	}()
 
 	var successCount, failureCount, skippedCount int
@@ -223,6 +229,50 @@ func syncWithRetry(ctx context.Context, p provider.Provider, img string, timeout
 	}
 
 	return result
+}
+
+// showProgress 显示进度条
+func showProgress(total int, progressChan <-chan struct{}) {
+	completed := 0
+	ticker := time.NewTicker(500 * time.Millisecond)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case _, ok := <-progressChan:
+			if !ok {
+				// 通道关闭，显示最终进度
+				printProgressBar(total, total)
+				fmt.Println() // 换行
+				return
+			}
+			completed++
+			printProgressBar(completed, total)
+		case <-ticker.C:
+			// 定期刷新进度条
+			if completed < total {
+				printProgressBar(completed, total)
+			}
+		}
+	}
+}
+
+// printProgressBar 打印进度条
+func printProgressBar(current, total int) {
+	width := 40
+	percent := float64(current) / float64(total)
+	filled := int(float64(width) * percent)
+
+	bar := ""
+	for i := 0; i < width; i++ {
+		if i < filled {
+			bar += "█"
+		} else {
+			bar += "░"
+		}
+	}
+
+	fmt.Printf("\r[%s] %d/%d (%.1f%%)", bar, current, total, percent*100)
 }
 
 // isRetryableError 判断错误是否可重试
