@@ -172,18 +172,22 @@ func main() {
 	}()
 
 	var successCount, failureCount, skippedCount int
+	var successImages, skippedImages, failedImages []string
 
 	for result := range resultChan {
 		if result.Success {
 			if result.ErrorMessage == "already exists" {
 				skippedCount++
+				skippedImages = append(skippedImages, fmt.Sprintf("%s -> %s", result.SourceImage, result.TargetImage))
 				logger.Info("[SKIP] %s -> %s (already exists)", result.SourceImage, result.TargetImage)
 			} else {
 				successCount++
+				successImages = append(successImages, fmt.Sprintf("%s -> %s", result.SourceImage, result.TargetImage))
 				logger.Info("[SUCCESS] %s -> %s", result.SourceImage, result.TargetImage)
 			}
 		} else {
 			failureCount++
+			failedImages = append(failedImages, fmt.Sprintf("%s -> %s: %s", result.SourceImage, result.TargetImage, result.ErrorMessage))
 			logger.Error("[FAIL] %s -> %s: %s", result.SourceImage, result.TargetImage, result.ErrorMessage)
 		}
 	}
@@ -206,8 +210,62 @@ func main() {
 	logger.Info("Failed: %d", failureCount)
 	logger.Info("========================================")
 
+	// 生成邮件内容文件
+	generateEmailReport(cfg.Provider, successImages, skippedImages, failedImages)
+
 	if failureCount > 0 || len(invalidEntries) > 0 {
 		os.Exit(1)
+	}
+}
+
+// generateEmailReport 生成邮件报告文件
+func generateEmailReport(provider string, successImages, skippedImages, failedImages []string) {
+	var sb strings.Builder
+
+	sb.WriteString(fmt.Sprintf("Docker镜像同步任务已完成\n\n"))
+	sb.WriteString(fmt.Sprintf("提供商: 阿里云 (%s)\n", provider))
+	sb.WriteString(fmt.Sprintf("时间: %s\n\n", time.Now().Format("2006-01-02 15:04:05")))
+
+	// 统计摘要
+	total := len(successImages) + len(skippedImages) + len(failedImages)
+	sb.WriteString(fmt.Sprintf("总计: %d 个镜像\n", total))
+	sb.WriteString(fmt.Sprintf("- 已同步: %d\n", len(successImages)))
+	sb.WriteString(fmt.Sprintf("- 已跳过: %d\n", len(skippedImages)))
+	sb.WriteString(fmt.Sprintf("- 失败: %d\n\n", len(failedImages)))
+
+	// 已同步
+	if len(successImages) > 0 {
+		sb.WriteString("[已同步]\n")
+		for _, img := range successImages {
+			sb.WriteString(fmt.Sprintf("  ✓ %s\n", img))
+		}
+		sb.WriteString("\n")
+	}
+
+	// 已跳过
+	if len(skippedImages) > 0 {
+		sb.WriteString("[已跳过]\n")
+		for _, img := range skippedImages {
+			sb.WriteString(fmt.Sprintf("  ⏭ %s\n", img))
+		}
+		sb.WriteString("\n")
+	}
+
+	// 失败
+	if len(failedImages) > 0 {
+		sb.WriteString("[失败]\n")
+		for _, img := range failedImages {
+			sb.WriteString(fmt.Sprintf("  ✗ %s\n", img))
+		}
+		sb.WriteString("\n")
+	}
+
+	// 写入文件
+	err := os.WriteFile("email_report.txt", []byte(sb.String()), 0644)
+	if err != nil {
+		logger.Error("Failed to write email report: %v", err)
+	} else {
+		logger.Info("Email report saved to email_report.txt")
 	}
 }
 
