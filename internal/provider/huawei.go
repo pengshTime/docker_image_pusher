@@ -94,7 +94,12 @@ func (p *HuaweiProvider) buildTargetImage(sourceImage string) string {
 		namespacePrefix = slashParts[0]
 	}
 
-	fullImageName := fmt.Sprintf("%s_%s", namespacePrefix, imageNameTag)
+	var fullImageName string
+	if namespacePrefix != "" {
+		fullImageName = fmt.Sprintf("%s_%s", namespacePrefix, imageNameTag)
+	} else {
+		fullImageName = imageNameTag
+	}
 
 	return fmt.Sprintf("%s/%s/%s", p.registry, p.namespace, fullImageName)
 }
