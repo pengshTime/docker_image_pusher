@@ -217,12 +217,12 @@ jobs:
         echo "skipped_count=$skipped_count" >> $GITHUB_OUTPUT
         echo "failure_count=$failure_count" >> $GITHUB_OUTPUT
         echo "aliyun_registry=$ALIYUN_REGISTRY/$ALIYUN_NAME_SPACE" >> $GITHUB_OUTPUT
-        
+
         # 使用多行输出格式
         echo "source_images_list<<EOF" >> $GITHUB_OUTPUT
         echo "$source_images_list" >> $GITHUB_OUTPUT
         echo "EOF" >> $GITHUB_OUTPUT
-        
+
         echo "aliyun_images_list<<EOF" >> $GITHUB_OUTPUT
         echo "$aliyun_images_list" >> $GITHUB_OUTPUT
         echo "EOF" >> $GITHUB_OUTPUT
