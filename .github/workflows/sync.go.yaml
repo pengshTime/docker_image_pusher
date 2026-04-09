@@ -11,10 +11,6 @@ on:
         description: 'Path to the image list file'
         required: true
         default: 'images.txt'
-  push:
-    branches: [ main ]
-    paths-ignore:
-      - '**.md'
 
 env:
   IMAGE_LIST_FILE: ${{ github.event.inputs.image_list_file || 'images.txt' }}
@@ -70,3 +66,25 @@ jobs:
           to: ${{ secrets.EMAIL_USERNAME }}
           from: GitHub Actions
           body: file://email_report.txt
+
+      - name: Delete Old Workflow Runs
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Fetching workflow runs..."
+          # 获取所有已完成的运行记录（排除当前正在运行的）
+          runs=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/runs?status=completed&per_page=100" | \
+            jq -r '.workflow_runs[] | select(.id != ${{ github.run_id }}) | .id')
+          
+          # 删除所有旧记录
+          count=0
+          for run_id in $runs; do
+            echo "Deleting run $run_id..."
+            curl -s -X DELETE -H "Authorization: token $GITHUB_TOKEN" \
+              "https://api.github.com/repos/${{ github.repository }}/actions/runs/$run_id"
+            count=$((count + 1))
+          done
+          
+          echo "Deleted $count old workflow runs"
