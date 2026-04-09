@@ -69,11 +69,12 @@ func (d *DingTalkNotifier) BuildMessage(provider string, results []SyncResult) *
 				skipCount++
 			} else {
 				successCount++
-				successImages = append(successImages, r.TargetImage)
+				// 显示源镜像 -> 目标镜像
+				successImages = append(successImages, fmt.Sprintf("%s → %s", r.SourceImage, r.TargetImage))
 			}
 		} else {
 			failCount++
-			failImages = append(failImages, fmt.Sprintf("%s: %s", r.SourceImage, r.ErrorMessage))
+			failImages = append(failImages, fmt.Sprintf("%s → %s: %s", r.SourceImage, r.TargetImage, r.ErrorMessage))
 		}
 	}
 
