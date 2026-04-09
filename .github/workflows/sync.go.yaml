@@ -52,37 +52,29 @@ jobs:
         env:
           PROVIDER: aliyun
           IMAGE_LIST_FILE: ${{ env.IMAGE_LIST_FILE }}
-          DINGTALK_TOKEN: ${{ secrets.DINGTALK_TOKEN }}
           ALIYUN_REGISTRY: ${{ secrets.ALIYUN_REGISTRY }}
           ALIYUN_NAMESPACE: ${{ secrets.ALIYUN_NAME_SPACE }}
           ALIYUN_REGISTRY_USER: ${{ secrets.ALIYUN_REGISTRY_USER }}
           ALIYUN_REGISTRY_PASSWORD: ${{ secrets.ALIYUN_REGISTRY_PASSWORD }}
         run: ./sync
 
-      - name: Send DingTalk Notification
+      - name: Send Email Notification
         if: always()
-        env:
-          DINGTALK_TOKEN: ${{ secrets.DINGTALK_TOKEN }}
-        run: |
-          if [ -z "$DINGTALK_TOKEN" ]; then
-            echo "[WARN] DINGTALK_TOKEN not set, skipping DingTalk notification"
-            exit 0
-          fi
-          if [ -z "$DINGTALK_MESSAGE" ]; then
-            echo "[WARN] DINGTALK_MESSAGE not set, using default message"
-            DINGTALK_MESSAGE='{"msgtype": "markdown", "markdown": {"title": "镜像同步报告", "text": "## 🚀 镜像同步任务报告\n\n☁️ 镜像已是最新，无需操作\n\n*由 docker-image-sync 自动发送*"}}'
-          fi
-          echo "Sending DingTalk notification..."
-          response=$(curl -s -w "\n%{http_code}" -X POST "https://oapi.dingtalk.com/robot/send?access_token=${DINGTALK_TOKEN}" \
-            -H "Content-Type: application/json" \
-            -d "$DINGTALK_MESSAGE")
-          http_code=$(echo "$response" | tail -n1)
-          body=$(echo "$response" | sed '$d')
-          if [ "$http_code" = "200" ]; then
-            echo "✅ DingTalk notification sent successfully"
-            echo "Response: $body"
-          else
-            echo "❌ Failed to send DingTalk notification"
-            echo "HTTP Code: $http_code"
-            echo "Response: $body"
-          fi
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.163.com
+          server_port: 465
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: Docker镜像同步完成通知 - ${{ job.status }}
+          to: ${{ secrets.EMAIL_USERNAME }}
+          from: GitHub Actions
+          body: |
+            Docker镜像同步任务已完成
+
+            提供商: 阿里云 (Aliyun)
+            状态: ${{ job.status }}
+            时间: ${{ github.event.repository.updated_at }}
+
+            请查看 GitHub Actions 日志获取详细信息:
+            https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
