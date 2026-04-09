@@ -98,12 +98,12 @@ func main() {
 	}
 	logger.Info("Login successful")
 
-	// 获取超时配置（默认10秒）
-	timeoutSec := 10
+	// 获取超时配置（默认300秒=5分钟）
+	timeoutSec := 300
 	if t := os.Getenv("SYNC_TIMEOUT"); t != "" {
 		if parsed, err := fmt.Sscanf(t, "%d", &timeoutSec); err != nil || parsed != 1 {
-			logger.Warn("Invalid SYNC_TIMEOUT value: %s, using default 10s", t)
-			timeoutSec = 10
+			logger.Warn("Invalid SYNC_TIMEOUT value: %s, using default 300s", t)
+			timeoutSec = 300
 		}
 	}
 	logger.Debug("Using sync timeout: %ds", timeoutSec)
@@ -264,7 +264,7 @@ func printHelp() {
 	fmt.Println("Environment Variables:")
 	fmt.Println("  PROVIDER              Cloud provider (aliyun/huawei/tencent)")
 	fmt.Println("  LOG_LEVEL             Log level (DEBUG/INFO/WARN/ERROR), default: INFO")
-	fmt.Println("  SYNC_TIMEOUT          Sync timeout in seconds, default: 10")
+	fmt.Println("  SYNC_TIMEOUT          Sync timeout in seconds, default: 300 (5 minutes)")
 	fmt.Println("  MAX_RETRIES           Max retry attempts, default: 3")
 	fmt.Println("  IMAGE_LIST_FILE       Path to image list file, default: images.txt")
 	fmt.Println("")
