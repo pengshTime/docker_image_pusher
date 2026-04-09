@@ -40,7 +40,9 @@ jobs:
           skopeo --version
 
       - name: Get dependencies
-        run: go mod download
+        run: |
+          go mod tidy
+          go mod download
 
       - name: Build
         run: go build -o sync ./cmd/sync
@@ -63,16 +65,16 @@ jobs:
           TENCENT_REGISTRY_PASSWORD: ${{ secrets.TENCENT_REGISTRY_PASSWORD }}
         run: ./sync
 
-      - name: Send email notification
-        if: always()
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.163.com
-          server_port: 465
-          username: ${{ secrets.EMAIL_USERNAME }}
-          password: ${{ secrets.EMAIL_PASSWORD }}
-          subject: Docker镜像同步完成通知
-          to: ${{ secrets.EMAIL_USERNAME }}
-          from: GitHub Actions
-          body: |
-            Docker镜像同步完成
+      # - name: Send email notification
+      #   if: always()
+      #   uses: dawidd6/action-send-mail@v3
+      #   with:
+      #     server_address: smtp.163.com
+      #     server_port: 465
+      #     username: ${{ secrets.EMAIL_USERNAME }}
+      #     password: ${{ secrets.EMAIL_PASSWORD }}
+      #     subject: Docker镜像同步完成通知
+      #     to: ${{ secrets.EMAIL_USERNAME }}
+      #     from: GitHub Actions
+      #     body: |
+      #       Docker镜像同步完成
