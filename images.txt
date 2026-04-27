@@ -3,4 +3,4 @@
 # 支持的云商: aliyun
 
 [aliyun]
-casaos/casaos:latest
+dockurr/casa
